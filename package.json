@@ -1,0 +1,46 @@
+{
+  "name": "private-sdk",
+  "version": "0.1.0",
+  "description": "Node 版 BGE 私有平台 SDK",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run run --",
+    "lint": "./node_modules/.bin/eslint .",
+    "jest": "./node_modules/.bin/jest .",
+    "test": "export NODE_ENV=development && npm run lint && npm run jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bgibge:j9jpYrzcxKRPu1zy@github.com/bgibge/private-sdk.git"
+  },
+  "keywords": [
+    "private",
+    "sdk",
+    "api",
+    "私有平台"
+  ],
+  "author": "xiaorujun@genomics.cn",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bgibge/private-sdk/issues"
+  },
+  "homepage": "https://github.com/bgibge/private-sdk#readme",
+  "dependencies": {
+    "@bgibge/crypto": "^0.1.0",
+    "axios": "^0.19.2",
+    "chai": "^4.2.0",
+    "inflection": "^1.12.0",
+    "lodash": "^4.17.15",
+    "moment": "^2.24.0",
+    "querystring": "^0.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "jest": "^25.2.7"
+  }
+}
