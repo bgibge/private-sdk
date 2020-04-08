@@ -6,8 +6,8 @@
  */
 const { expect } = require('chai')
 const Http = require('./Http')
+const filters = require('./filters')
 const utils = require('./utils')
-const cks = require('./callbacks')
 
 
 
@@ -30,7 +30,6 @@ module.exports = class Service {
 
     const {
       timeout = utils.DEFAULT_TIMEOUT,
-      inflection = utils.DEFAULT_INFLECTION,
       errorCodePrefix = utils.DEFAULT_ERROR_CODE_PREFIX
     } = options
 
@@ -39,13 +38,13 @@ module.exports = class Service {
     this.secret = secret
     this.timeout = Number.parseInt(timeout) ||
       utils.DEFAULT_TIMEOUT
-    this.inflection = inflection
     this.errorCodePrefix = errorCodePrefix
 
     this.http = new Http({
       host, key, secret, timeout
     })
   }
+
 
 
   /**
@@ -67,9 +66,43 @@ module.exports = class Service {
   getSampleData (numbers) {
     expect(numbers).to.be.an('array')
 
-    // TODO：inflection
-    return this.http.reqSampleData(numbers).then(
-      cks.getSampleDataCallback
-    )
+    return this.http.reqSampleData(numbers).then(({
+      error,
+      message,
+      result: list
+    }) => {
+      if (error) {
+        return Promise.resolve({ code: 1, message })
+      }
+
+      const result = list.map(filters.sampleData)
+
+      return Promise.resolve({ result })
+    })
+  }
+
+
+  /**
+   * 404
+   *
+   * @returns {Promise<Object>}
+   * ```javascript
+   * return {
+   *   code: Number,
+   *   message: String
+   * }
+   * ```
+   */
+  getNotFound () {
+    return this.http.reqNotFound().then(({
+      error,
+      message
+    }) => {
+      if (error) {
+        return Promise.resolve({ code: 4, message })
+      }
+
+      return {}
+    })
   }
 }

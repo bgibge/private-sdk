@@ -61,12 +61,15 @@ module.exports = class Http { // Class
       const status = error.response.status || 500
 
       return {
-        data: {
-          error: true,
-          message: `私有平台：发生网络异常（${status}）`
-        }
+        error: true,
+        message: `私有平台：发生网络异常（${status}）`
       }
     })
+  }
+
+
+  reqNotFound () {
+    return this.axios.get('/openbge/notFound')
   }
 
 

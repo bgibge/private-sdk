@@ -12,7 +12,6 @@ const service = new Service({
   key: String,
   secret: String,
   timeout: Number,
-  inflection: String, // camelize, underscore
   errorCodePrefix: ''
 })
 ```

@@ -34,8 +34,61 @@ describe('获取套件信息：getSampleData()', () => {
         result: [{
           number,
           omic: 'genomics',
-          surveyId: 5
+          surveyId: 5,
+          samplingTime: null
         }]
+      })
+    })
+  })
+
+  test('无效套件编码：返回空数据', () => {
+    const number = config.invalidNumbers[0]
+
+    return service.getSampleData([
+      number
+    ]).then(data => {
+      expect(data).toEqual({
+        result: []
+      })
+    })
+  })
+
+  // test('参数错误', () => {
+  //   const number = config.numbers[0]
+
+  //   return service.getSampleData([
+  //     number
+  //   ]).then(data => {
+  //     expect(data).toEqual({
+  //       code: 1,
+  //       message: '私有平台：参数错误'
+  //     })
+  //   })
+  // })
+
+  // test('404', () => {
+  //   const number = config.numbers[0]
+
+  //   return service.getSampleData([
+  //     number
+  //   ]).then(data => {
+  //     console.dir(data)
+  //     expect(data).toEqual({
+  //       code: 1,
+  //       message: '私有平台：发生网络异常（404）'
+  //     })
+  //   })
+  // })
+})
+
+
+
+describe('发生网络异常', () => {
+  test('404', () => {
+    return service.getNotFound().then(data => {
+      expect(data).toEqual({
+        code: 4,
+        message: '私有平台：发生网络异常（404）'
       })
     })
   })
