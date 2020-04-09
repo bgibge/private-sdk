@@ -33,3 +33,34 @@ exports.sampleData = function (itemData) {
     samplingTime: Date.parse(sampleTime) || null
   }
 }
+
+
+
+
+/**
+ * 位点基因型
+ */
+exports.pickVariants = function (list) {
+  const result = []
+
+  _.forEach(list, (item) => {
+    const rsid = (item.alternate_id || [])[0]
+    const variant = item.variant || {}
+
+    if (!rsid) {
+      return false
+    }
+
+    const genotype = (variant.genotype || '').replace('/', '')
+
+    result.push({
+      chromosome: variant.chromosome || '-',
+      position: variant.position || '-',
+      isCall: !variant.is_no_call,
+      rsid,
+      genotype
+    })
+  })
+
+  return result
+}

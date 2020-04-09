@@ -208,4 +208,32 @@ module.exports = class Http { // Class
       qs.stringify(_.assign(reqData, signature)) //
     )
   }
+
+
+  /**
+   * 向私有平台请求报告的基因型数据
+   *
+   * @param {string} number - 套件编码
+   * @param {string[]} rsids - rs 位点id 列表
+   */
+  reqVariants (number, rsids) {
+    expect(number).to.be.a('string').not.empty
+    expect(rsids).to.be.an('array')
+
+    const reqData = {
+      biosample_id: number,
+      rsids: rsids.join(',')
+    }
+
+    // 签名
+    const signature = sign({
+      key: this.key,
+      secret: this.secret
+    }, reqData)
+
+    return this.axios.post(
+      '/v2/openbge/genome/variant',
+      qs.stringify(_.assign(reqData, signature)) //
+    )
+  }
 }

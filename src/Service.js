@@ -215,6 +215,34 @@ const Service = module.exports = class Service {
       })
     })
   }
+
+
+  /**
+  * 向私有平台请求报告的基因型数据
+  *
+  * @param {string} number - 套件编码
+  * @param {string[]} rsids - rs 位点id 列表
+  *
+  * @returns
+  */
+  getVariants (number, rsids) {
+    expect(number).to.be.a('string').not.empty
+    expect(rsids).to.be.an('array')
+
+    return this.http.reqVariants(number, rsids).then(({
+      error,
+      message,
+      result: list
+    }) => {
+      if (error) {
+        return Promise.resolve({ code: 6, message })
+      }
+
+      return Promise.resolve({
+        list: filters.pickVariants(list)
+      })
+    })
+  }
 }
 
 

@@ -89,12 +89,12 @@ describe('发送短信通知：sendingSMS()', () => {
     nickname: '小小鸟'
   }
 
-  test(`向 ${phone} 发送"芯片数据已完成解读"通知：成功`, () => {
-    return service.sendingSMS(phone, tmpl, data).then(res => {
-      expect(res.message).toBe('success')
-      expect(res.time).toBeLessThan(Date.now())
-    })
-  })
+  // test(`向 ${phone} 发送"芯片数据已完成解读"通知：成功`, () => {
+  //   return service.sendingSMS(phone, tmpl, data).then(res => {
+  //     expect(res.message).toBe('success')
+  //     expect(res.time).toBeLessThan(Date.now())
+  //   })
+  // })
 
   test(`向 ${phone} 发送不存在通知模版的短信：失败`, () => {
     return service.sendingSMS(phone, tmpl + 'a', data).then(res => {
@@ -189,6 +189,66 @@ describe('获取套件答卷信息：getSurveyRspns()', () => {
     }]).then(res => {
       expect(res).toEqual({
         list: []
+      })
+    })
+  })
+})
+
+
+
+describe('获取位点基因型：getVariants()', () => {
+  const number = 'E-B19320110961'
+
+  test(`获取${number}的微醺所需位点数据：成功`, () => {
+    const rsids = [
+      'rs279845',
+      'rs1229984',
+      'rs671',
+      'rs10246939',
+      'rs3813867',
+      'rs279871',
+      'rs1421085',
+      'rs698'
+    ]
+
+    return service.getVariants(number, rsids).then(res => {
+      expect(res).toEqual({
+        list: [
+          { chromosome: 'chr10', position: 133526101, isCall: true, rsid: 'rs3813867', genotype: 'GG' },
+          { chromosome: 'chr4', position: 46327706, isCall: true, rsid: 'rs279845', genotype: 'TA' },
+          { chromosome: 'chr12', position: 111803962, isCall: true, rsid: 'rs671', genotype: 'GA' },
+          { chromosome: 'chr4', position: 99339632, isCall: true, rsid: 'rs698', genotype: 'TT' },
+          { chromosome: 'chr4', position: 46303716, isCall: true, rsid: 'rs279871', genotype: 'TC' },
+          { chromosome: 'chr4', position: 99318162, isCall: true, rsid: 'rs1229984', genotype: 'TT' },
+          { chromosome: 'chr16', position: 53767042, isCall: true, rsid: 'rs1421085', genotype: 'TC' },
+          { chromosome: 'chr7', position: 141972804, isCall: true, rsid: 'rs10246939', genotype: 'CC' }
+        ]
+      })
+    })
+  })
+
+  test('未传递所需数据的位点：失败', () => {
+    const rsids = []
+
+    return service.getVariants(number, rsids).then(res => {
+      expect(res).toEqual({
+        code: 6,
+        message: '私有平台：参数错误'
+      })
+    })
+  })
+
+  test('传递不存在的rs位点：失败', () => {
+    const rsids = [
+      'rs279845',
+      'rsinvaild'
+    ]
+
+    return service.getVariants(number, rsids).then(res => {
+      expect(res).toEqual({
+        list: [{
+          chromosome: 'chr4', position: 46327706, isCall: true, rsid: 'rs279845', genotype: 'TA'
+        }]
       })
     })
   })
