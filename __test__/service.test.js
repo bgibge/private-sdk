@@ -89,12 +89,12 @@ describe('发送短信通知：sendingSMS()', () => {
     nickname: '小小鸟'
   }
 
-  // test(`向 ${phone} 发送"芯片数据已完成解读"通知：成功`, () => {
-  //   return service.sendingSMS(phone, tmpl, data).then(res => {
-  //     expect(res.message).toBe('success')
-  //     expect(res.time).toBeLessThan(Date.now())
-  //   })
-  // })
+  test(`向 ${phone} 发送"芯片数据已完成解读"通知：成功`, () => {
+    return service.sendingSMS(phone, tmpl, data).then(res => {
+      expect(res.message).toBe('success')
+      expect(res.time).toBeLessThan(Date.now())
+    })
+  })
 
   test(`向 ${phone} 发送不存在通知模版的短信：失败`, () => {
     return service.sendingSMS(phone, tmpl + 'a', data).then(res => {
