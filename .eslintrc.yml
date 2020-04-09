@@ -1,5 +1,6 @@
 extends: standard
 rules:
    no-multiple-empty-lines: off
+   no-unused-expressions: off
 env:
   jest: true

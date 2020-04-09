@@ -6,6 +6,7 @@
  */
 const axios = require('axios')
 const { expect } = require('chai')
+const inflection = require('inflection')
 const _ = require('lodash')
 const qs = require('querystring')
 const sign = require('./sign')
@@ -68,13 +69,16 @@ module.exports = class Http { // Class
   }
 
 
+  /**
+   * 向私有平台请求不存在的接口
+   */
   reqNotFound () {
     return this.axios.get('/openbge/notFound')
   }
 
 
   /**
-   * 向私有平台发出请求套件信息
+   * 向私有平台请求套件信息
    *
    * @param {string[]} numbers - 套件编码数组
    *
@@ -83,7 +87,7 @@ module.exports = class Http { // Class
    * return {
    *   error: Boolean,
    *   message: String,
-   *   result: Object
+   *   result: [Object]
    * }
    * ```
    */
@@ -108,6 +112,99 @@ module.exports = class Http { // Class
 
     return this.axios.post(
       '/openbge/samples',
+      qs.stringify(_.assign(reqData, signature)) //
+    )
+  }
+
+
+  /**
+   * 向私有平台请求套件答卷
+   *
+   * @param {Object[]} conditions - 查询条件
+   * @param {String} conditions[].userId - 用户id
+   * @param {String} conditions[].number - 套件编码
+   * @param {String} conditions[].surveyId - 问卷id
+   *
+   *
+   * @returns {Promise<Object>}
+   * ```javascript
+   * return {
+   *   error: Boolean,
+   *   message: String,
+   *   result: [Object]
+   * }
+   * ```
+   */
+  reqSurveyRspns (conditions) {
+    expect(conditions).to.be.an('array')
+
+    const query = _.map(conditions, (item) => {
+      return {
+        user_id: item.userId,
+        biosample_id: item.number,
+        survey_id: item.surveyId
+      }
+    })
+
+    const reqData = {
+      query: JSON.stringify({
+        query: {
+          $in: query
+        }
+      })
+    }
+
+    // 签名
+    const signature = sign({
+      key: this.key,
+      secret: this.secret
+    }, reqData)
+
+    return this.axios.post(
+      '/openbge/response',
+      qs.stringify(_.assign(reqData, signature)) //
+    )
+  }
+
+
+  /**
+   * 向私有平台请求向用户发送短信通知
+   *
+   * @param {string} phone - 手机号码
+   * @param {string} tmpl - 短信模版
+   * @param {Object} data - 模版数据
+   *
+   * @returns {Object}
+   * ```javascript
+   * return {
+   *   message: String,
+   *   time: Number
+   * }
+   * ```
+   */
+  reqSendingSMS (phone, tmpl, data = {}) {
+    expect(phone).to.be.a('string').not.empty
+    expect(tmpl).to.be.a('string').not.empty
+
+    if (data.nickname) {
+      data.user_nick_name = data.nickname
+      delete data.nickname
+    }
+
+    const reqData = {
+      mobiles: phone,
+      template: inflection.underscore(tmpl),
+      ...data
+    }
+
+    // 签名
+    const signature = sign({
+      key: this.key,
+      secret: this.secret
+    }, reqData)
+
+    return this.axios.post(
+      '/service/sms',
       qs.stringify(_.assign(reqData, signature)) //
     )
   }
