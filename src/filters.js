@@ -1,10 +1,11 @@
 /*
  * @Author: xiaorujun
- * @Description: 刷选从私有平台返回的睡觉
+ * @Description: 刷选从私有平台返回的结果
  * @Date: 2020-04-07 18:11:46
  * @Last Modified by: xiaorujun
  */
 const _ = require('lodash')
+const utils = require('./utils')
 
 
 
@@ -63,4 +64,28 @@ exports.pickVariants = function (list) {
   })
 
   return result
+}
+
+
+
+
+/**
+ * 搜索结果
+ */
+exports.searchItem = function (itemData) {
+  const {
+    data: {
+      category
+    }
+  } = itemData
+
+  const scope = _.find(utils.SEARCH_SCOPES, {
+    pvt: category
+  })
+
+  if (!scope) {
+    return null
+  }
+
+  return utils.searchFilters[scope.app](itemData)
 }

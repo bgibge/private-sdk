@@ -9,7 +9,7 @@ const { expect } = require('chai')
 const inflection = require('inflection')
 const _ = require('lodash')
 const qs = require('querystring')
-const sign = require('./sign')
+const sign = require('./utils/sign')
 
 
 
@@ -26,10 +26,6 @@ module.exports = class Http { // Class
    *
    */
   constructor (configs = {}) {
-    if (!(this instanceof Http)) {
-      return new Http(configs)
-    }
-
     const {
       host,
       key,
@@ -59,7 +55,11 @@ module.exports = class Http { // Class
         }
       }
     }, function (error) {
-      const status = error.response.status || 500
+      let status = (error.response || {}).status || 500
+
+      if ((/timeout/).test(error.message)) {
+        status = 408
+      }
 
       return {
         error: true,
@@ -92,11 +92,7 @@ module.exports = class Http { // Class
    * ```
    */
   reqSampleData (numbers) {
-    expect(numbers).to.be.an('array')
-
-    if (numbers.length === 0) {
-      return []
-    }
+    expect(numbers).to.be.an('array').not.empty
 
     const reqData = {
       page: 1,
@@ -124,7 +120,6 @@ module.exports = class Http { // Class
    * @param {String} conditions[].userId - 用户id
    * @param {String} conditions[].number - 套件编码
    * @param {String} conditions[].surveyId - 问卷id
-   *
    *
    * @returns {Promise<Object>}
    * ```javascript
@@ -174,7 +169,7 @@ module.exports = class Http { // Class
    * @param {string} tmpl - 短信模版
    * @param {Object} data - 模版数据
    *
-   * @returns {Object}
+   * @returns {Promise<Object>}
    * ```javascript
    * return {
    *   message: String,
@@ -233,6 +228,63 @@ module.exports = class Http { // Class
 
     return this.axios.post(
       '/v2/openbge/genome/variant',
+      qs.stringify(_.assign(reqData, signature)) //
+    )
+  }
+
+
+  /**
+   * 搜索
+   *
+   * @param {Object} conditions - 搜索条件
+   * @param {string} conditions.number - 套件编码
+   * @param {string} conditions.query - 搜索内容
+   * @param {string} conditions.scopes - 搜索范围
+   * @param {number} conditions.page - 指定第几页
+   * @param {number} conditions.limit - 指定返回记录的数量
+   *
+   * @returns {Promise<Object>}
+   * ```
+   * return {
+   *   page: Number, // 当前页
+   *   limit: Number, // 返回记录数
+   *   count: Number, // 记录数
+   *   pages: Number, // 总页数
+   *   total: Number, // 记录总数
+   *   result: [Object]
+   * }
+   * ```
+   */
+  reqSearch (conditions) {
+    const {
+      number,
+      query,
+      scopes,
+      page,
+      limit
+    } = conditions
+
+    expect(query).a('string').not.empty
+    expect(scopes).a('string').not.empty
+    expect(page).a('number').above(0)
+    expect(limit).a('number').above(0)
+
+    const reqData = {
+      biosample_id: number,
+      query,
+      category: scopes,
+      page,
+      limit
+    }
+
+    // 签名
+    const signature = sign({
+      key: this.key,
+      secret: this.secret
+    }, reqData)
+
+    return this.axios.post(
+      '/openbge/search',
       qs.stringify(_.assign(reqData, signature)) //
     )
   }

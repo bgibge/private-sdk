@@ -5,6 +5,7 @@
  * @Last Modified by: xiaorujun
  */
 const { expect } = require('chai')
+const _ = require('lodash')
 const Http = require('./Http')
 const filters = require('./filters')
 const utils = require('./utils')
@@ -15,10 +16,6 @@ const pkg = require('../package.json')
 
 const Service = module.exports = class Service {
   constructor (configs = {}, options = {}) {
-    if (!(this instanceof Service)) {
-      return new Service(configs, options)
-    }
-
     const {
       host,
       key,
@@ -66,7 +63,7 @@ const Service = module.exports = class Service {
    * ```
    */
   getSampleData (numbers) {
-    expect(numbers).to.be.an('array')
+    expect(numbers).to.be.an('array').not.empty
 
     return this.http.reqSampleData(numbers).then(({
       error,
@@ -97,14 +94,9 @@ const Service = module.exports = class Service {
    */
   getNotFound () {
     return this.http.reqNotFound().then(({
-      error,
       message
     }) => {
-      if (error) {
-        return Promise.resolve({ code: 4, message })
-      }
-
-      return {}
+      return Promise.resolve({ code: 4, message })
     })
   }
 
@@ -218,13 +210,23 @@ const Service = module.exports = class Service {
 
 
   /**
-  * 向私有平台请求报告的基因型数据
-  *
-  * @param {string} number - 套件编码
-  * @param {string[]} rsids - rs 位点id 列表
-  *
-  * @returns
-  */
+   * 向私有平台请求报告的基因型数据
+   *
+   * @param {string} number - 套件编码
+   * @param {string[]} rsids - rs 位点id 列表
+   *
+   * @returns {Promise<Object>}
+   * ```
+   * return {
+   *   list: [{
+   *     chromosome: String, // 染色体编号
+   *     position: Number, // rs位点位置
+   *     isCall: Boolean, // 是否检出
+   *     rsid: String, // RS code
+   *     genotype: String // 基因型
+   *   }]
+   * }
+   */
   getVariants (number, rsids) {
     expect(number).to.be.a('string').not.empty
     expect(rsids).to.be.an('array')
@@ -240,6 +242,73 @@ const Service = module.exports = class Service {
 
       return Promise.resolve({
         list: filters.pickVariants(list)
+      })
+    })
+  }
+
+  /**
+   * 搜索
+   *
+   * @param {Object} params - 搜索参数
+   * @param {string} params.number - 套件编码
+   * @param {string} params.query - 搜索内容
+   * @param {string[]} [params.scopes=['application', 'survey', 'report']] - 搜索范围
+   * @param {number} [params.page=1] - 指定第几页
+   * @param {number} [params.limit=10] - 指定返回记录的数量
+   *
+   * @returns {Promise<Object>}
+   * ```
+   * return {
+   *   page: Number, // 当前页
+   *   limit: Number, // 返回记录数
+   *   pages: Number, // 总页数
+   *   total: Number, // 记录总数
+   *   list: [Object]
+   * }
+   * ```
+   */
+  doSearch (params = {}) {
+    const {
+      number,
+      query,
+      scopes = _.map(utils.DEFAULT_SEARCH_SCOPES, 'app'),
+      page = 1,
+      limit = 10
+    } = params
+
+    expect(query).a('string').not.empty
+
+    const data = {}
+    data.number = number
+    data.query = query
+    data.page = page
+    data.limit = limit
+
+    // 将 sdk 定义的 scope 转换成私有平台的定义
+    data.scopes = _.reduce(scopes, (r, scope) => {
+      const bar = _.find(utils.SEARCH_SCOPES, {
+        app: scope
+      })
+
+      return r.concat(bar ? bar.pvt : scope)
+    }, [])
+    data.scopes = data.scopes.join(',')
+
+    return this.http.reqSearch(data).then(({
+      error,
+      message,
+      result
+    }) => {
+      if (error) {
+        return Promise.resolve({ code: 7, message })
+      }
+
+      return Promise.resolve({
+        page,
+        limit,
+        total: result.total,
+        pages: result.pages,
+        list: _.map(result.result, filters.searchItem)
       })
     })
   }

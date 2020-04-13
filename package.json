@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run run --",
     "lint": "./node_modules/.bin/eslint .",
-    "jest": "./node_modules/.bin/jest .",
+    "jest": "./node_modules/.bin/jest --coverage=true",
     "test": "export NODE_ENV=development && npm run lint && npm run jest"
   },
   "repository": {

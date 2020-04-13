@@ -4,7 +4,7 @@
  * @Date: 2020-04-07 16:37:48
  * @Last Modified by: xiaorujun
  */
-
+const _ = require('lodash')
 const env = process.env.NODE_ENV || 'development'
 const config = require(`./configs/env/${env}.config`)
 const Service = require('../src/Service')
@@ -17,7 +17,7 @@ const service = new Service({
   key: config.key,
   secret: config.secret
 }, {
-  timeout: 30 * 100,
+  timeout: 30 * 1000,
   errorCodePrefix: 80
 })
 
@@ -71,8 +71,8 @@ describe('获取套件信息：getSampleData()', () => {
 
 describe('发生网络异常', () => {
   test('404', () => {
-    return service.getNotFound().then(data => {
-      expect(data).toEqual({
+    return service.getNotFound().then(res => {
+      expect(res).toEqual({
         code: 4,
         message: '私有平台：发生网络异常（404）'
       })
@@ -92,7 +92,7 @@ describe('发送短信通知：sendingSMS()', () => {
   test(`向 ${phone} 发送"芯片数据已完成解读"通知：成功`, () => {
     return service.sendingSMS(phone, tmpl, data).then(res => {
       expect(res.message).toBe('success')
-      expect(res.time).toBeLessThan(Date.now())
+      expect(res.time).toBeLessThanOrEqual(Date.now())
     })
   })
 
@@ -211,18 +211,20 @@ describe('获取位点基因型：getVariants()', () => {
       'rs698'
     ]
 
+    const expected = [
+      { chromosome: 'chr10', position: 133526101, isCall: true, rsid: 'rs3813867', genotype: 'GG' },
+      { chromosome: 'chr4', position: 46327706, isCall: true, rsid: 'rs279845', genotype: 'TA' },
+      { chromosome: 'chr12', position: 111803962, isCall: true, rsid: 'rs671', genotype: 'GA' },
+      { chromosome: 'chr4', position: 99339632, isCall: true, rsid: 'rs698', genotype: 'TT' },
+      { chromosome: 'chr4', position: 46303716, isCall: true, rsid: 'rs279871', genotype: 'TC' },
+      { chromosome: 'chr4', position: 99318162, isCall: true, rsid: 'rs1229984', genotype: 'TT' },
+      { chromosome: 'chr16', position: 53767042, isCall: true, rsid: 'rs1421085', genotype: 'TC' },
+      { chromosome: 'chr7', position: 141972804, isCall: true, rsid: 'rs10246939', genotype: 'CC' }
+    ]
+
     return service.getVariants(number, rsids).then(res => {
-      expect(res).toEqual({
-        list: [
-          { chromosome: 'chr10', position: 133526101, isCall: true, rsid: 'rs3813867', genotype: 'GG' },
-          { chromosome: 'chr4', position: 46327706, isCall: true, rsid: 'rs279845', genotype: 'TA' },
-          { chromosome: 'chr12', position: 111803962, isCall: true, rsid: 'rs671', genotype: 'GA' },
-          { chromosome: 'chr4', position: 99339632, isCall: true, rsid: 'rs698', genotype: 'TT' },
-          { chromosome: 'chr4', position: 46303716, isCall: true, rsid: 'rs279871', genotype: 'TC' },
-          { chromosome: 'chr4', position: 99318162, isCall: true, rsid: 'rs1229984', genotype: 'TT' },
-          { chromosome: 'chr16', position: 53767042, isCall: true, rsid: 'rs1421085', genotype: 'TC' },
-          { chromosome: 'chr7', position: 141972804, isCall: true, rsid: 'rs10246939', genotype: 'CC' }
-        ]
+      _.forEach(expected, (item) => {
+        expect(_.find(res.list, item)).toBeDefined()
       })
     })
   })
