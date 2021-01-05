@@ -27,7 +27,7 @@
   "homepage": "https://github.com/bgibge/private-sdk#readme",
   "dependencies": {
     "@bgibge/crypto": "^0.1.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "chai": "^4.2.0",
     "inflection": "^1.12.0",
     "lodash": "^4.17.15",
